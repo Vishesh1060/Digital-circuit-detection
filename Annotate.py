@@ -65,6 +65,7 @@ def parser(File,Columns,md):
                 i=i+1
     return dt3,dt2
 
+
 def process(Files,columns,metadata):
     for file in Files:
         df1,metadata1=parser(file,columns,metadata)
@@ -73,16 +74,17 @@ def process(Files,columns,metadata):
         df5=pd.DataFrame(columns=['filepath','x1','y1','x2','y2','class_name'])
         for i in range(len(df['name'])):
             df5.loc[len(df5.index)+1]=[str('C:\\Users\\vishe.IDEAPADFLEX\\Desktop\\CGHD-1152\\Frcnn\\Keras-frcnn-master\\keras_frcnn\\Train_images\\'+metadata['filename'][0]),str(int(df['xmin'][i])),str(int(df['ymin'][i])),str(int(df['xmax'][i])),str(int(df['ymax'][i])),str(df['name'][i])]
+
 #        df5.to_csv('../out/annotate.txt',mode='a',header=None, index=None, sep=',')
         print('done')
     return df
 
-image='../C144_D2_P4.jpg'
-fig = plt.figure()
-ax = fig.add_axes([0,0,1,1])
-image=plt.imread(image)
-plt.imshow(image)
-edgecolor='w'
+# image='../C144_D2_P4.jpg'
+# fig = plt.figure()
+# ax = fig.add_axes([0,0,1,1])
+# image=plt.imread(image)
+# plt.imshow(image)
+# edgecolor='w'
 df=pd.DataFrame()
 df=process(Files,columns,metadata)
 
