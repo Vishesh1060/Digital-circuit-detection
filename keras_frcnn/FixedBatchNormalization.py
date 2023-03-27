@@ -21,9 +21,9 @@ class FixedBatchNormalization(Layer):
 
     def build(self, input_shape):
         self.input_spec = [K.keras.layers.InputSpec(shape=input_shape)]
-        shape = (input_shape.as_list()[self.axis],)
+        shape = (input_shape.as_list()[-1],)
         print("--+--",shape, input_shape[:],"+")
-        print("-----",input_shape.as_list()[self.axis])
+        print("-----",input_shape.as_list()[-1])
 
         self.gamma = self.add_weight(shape=shape,
                                      initializer=self.gamma_init,
@@ -52,13 +52,20 @@ class FixedBatchNormalization(Layer):
 
         assert self.built, 'Layer must be built before being called'
         input_shape = K.keras.backend.int_shape(x)
-
+        print("*",x,"*")
         reduction_axes = list(range(len(input_shape)))
         del reduction_axes[self.axis]
         broadcast_shape = [1] * len(input_shape)
         broadcast_shape[self.axis] = input_shape[self.axis]
+        for x1 in range(len(input_shape)):
+          if input_shape[x1]==None:
+            broadcast_shape[x1]=1
+          else:
+            broadcast_shape[x1]=1*input_shape[x1]
+        
+        print("-*-*-*-",broadcast_shape,"*",input_shape,'-',x)
 
-        if sorted(reduction_axes) == range(K.keras.backend.ndim(x))[:-1]:
+        if sorted(reduction_axes) == range(K.keras.backend.int_shape(x)[-1])[:-1]:
             x_normed = K.batch_normalization(
                 x, self.running_mean, self.running_std,
                 self.beta, self.gamma,
@@ -69,10 +76,10 @@ class FixedBatchNormalization(Layer):
             broadcast_running_std = K.reshape(self.running_std, broadcast_shape)
             broadcast_beta = K.reshape(self.beta, broadcast_shape)
             broadcast_gamma = K.reshape(self.gamma, broadcast_shape)
-            x_normed = K.batch_normalization(
+            x_normed = K.nn.batch_normalization(
                 x, broadcast_running_mean, broadcast_running_std,
                 broadcast_beta, broadcast_gamma,
-                epsilon=self.epsilon)
+                variance_epsilon=self.epsilon)
 
         return x_normed
 
