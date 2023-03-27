@@ -16,10 +16,10 @@ from keras_frcnn import roi_helpers
 
 sys.setrecursionlimit(40000)
 
-config = tf.ConfigProto()
+config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 config.log_device_placement = True
-sess = tf.Session(config=config)
+sess = tf.compat.v1.Session(config=config)
 set_session(sess)
 
 parser = OptionParser()
