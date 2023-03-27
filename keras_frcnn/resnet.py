@@ -8,16 +8,16 @@ Adapted from code contributed by BigMoyan.
 from __future__ import print_function
 from __future__ import absolute_import
 
-from tensorflow.keras.layers import Input, Add, Dense, Activation, Flatten, Conv2D, MaxPooling2D, ZeroPadding2D, \
+from tensorflow.keras.layers import Input, Add, Dense, Activation, Flatten, MaxPooling2D, ZeroPadding2D, \
     AveragePooling2D, TimeDistributed
-
-from tensorflow.keras import backend as K
+from tensorflow.keras.layers import Conv2D as Convolution2D
+import tensorflow as K
 
 from keras_frcnn.RoiPoolingConv import RoiPoolingConv
 from keras_frcnn.FixedBatchNormalization import FixedBatchNormalization
 
 def get_weight_path():
-    if K.image_data_format() == 'th':
+    if K.keras.backend.image_data_format == 'th':
         return 'resnet50_weights_th_dim_ordering_th_kernels_notop.h5'
     else:
         return 'resnet50_weights_tf_dim_ordering_tf_kernels.h5'
@@ -39,7 +39,7 @@ def identity_block(input_tensor, kernel_size, filters, stage, block, trainable=T
 
     nb_filter1, nb_filter2, nb_filter3 = filters
     
-    if K.common.image_dim_ordering() == 'tf':
+    if K.keras.backend.image_data_format == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -68,7 +68,7 @@ def identity_block_td(input_tensor, kernel_size, filters, stage, block, trainabl
     # identity block time distributed
 
     nb_filter1, nb_filter2, nb_filter3 = filters
-    if K.common.image_dim_ordering() == 'tf':
+    if K.keras.backend.image_data_format == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -95,7 +95,7 @@ def identity_block_td(input_tensor, kernel_size, filters, stage, block, trainabl
 def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2), trainable=True):
 
     nb_filter1, nb_filter2, nb_filter3 = filters
-    if K.common.image_dim_ordering() == 'tf':
+    if K.keras.backend.image_data_format == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -127,7 +127,7 @@ def conv_block_td(input_tensor, kernel_size, filters, stage, block, input_shape,
     # conv block time distributed
 
     nb_filter1, nb_filter2, nb_filter3 = filters
-    if K.common.image_dim_ordering() == 'tf':
+    if K.keras.backend.image_data_format == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -156,7 +156,7 @@ def conv_block_td(input_tensor, kernel_size, filters, stage, block, input_shape,
 def nn_base(input_tensor=None, trainable=False):
 
     # Determine proper input shape
-    if K.common.image_dim_ordering() == 'th':
+    if K.keras.backend.image_data_format == 'th':
         input_shape = (3, None, None)
     else:
         input_shape = (None, None, 3)
@@ -164,12 +164,12 @@ def nn_base(input_tensor=None, trainable=False):
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not K.keras.backend.is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
 
-    if K.common.image_dim_ordering() == 'tf':
+    if K.keras.backend.image_data_format == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -177,6 +177,7 @@ def nn_base(input_tensor=None, trainable=False):
     x = ZeroPadding2D((3, 3))(img_input)
 
     x = Convolution2D(64, (7, 7), strides=(2, 2), name='conv1', trainable = trainable)(x)
+    print(x)
     x = FixedBatchNormalization(axis=bn_axis, name='bn_conv1')(x)
     x = Activation('relu')(x)
     x = MaxPooling2D((3, 3), strides=(2, 2))(x)

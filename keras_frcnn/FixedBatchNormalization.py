@@ -1,11 +1,12 @@
 from tensorflow.keras.layers import Layer, InputSpec
 from tensorflow.keras import initializers, regularizers
-import tensorflow as k
+from tensorflow.keras.models import Sequential
+import tensorflow as K
 
 class FixedBatchNormalization(Layer):
 
     def __init__(self, epsilon=1e-3, axis=-1,
-                 weights=None, beta_init='zero', gamma_init='one',
+                 weights=None, beta_init='zeros', gamma_init='ones',
                  gamma_regularizer=None, beta_regularizer=None, **kwargs):
 
         self.supports_masking = True
@@ -19,8 +20,10 @@ class FixedBatchNormalization(Layer):
         super(FixedBatchNormalization, self).__init__(**kwargs)
 
     def build(self, input_shape):
-        self.input_spec = [InputSpec(shape=input_shape)]
-        shape = (input_shape[self.axis],)
+        self.input_spec = [K.keras.layers.InputSpec(shape=input_shape)]
+        shape = (input_shape.as_list()[self.axis],)
+        print("--+--",shape, input_shape[:],"+")
+        print("-----",input_shape.as_list()[self.axis])
 
         self.gamma = self.add_weight(shape=shape,
                                      initializer=self.gamma_init,
@@ -35,7 +38,7 @@ class FixedBatchNormalization(Layer):
         self.running_mean = self.add_weight(shape=shape, initializer='zero',
                                             name='{}_running_mean'.format(self.name),
                                             trainable=False)
-        self.running_std = self.add_weight(shape=shape, initializer='one',
+        self.running_std = self.add_weight(shape=shape, initializer='ones',
                                            name='{}_running_std'.format(self.name),
                                            trainable=False)
 
@@ -48,14 +51,14 @@ class FixedBatchNormalization(Layer):
     def call(self, x, mask=None):
 
         assert self.built, 'Layer must be built before being called'
-        input_shape = K.int_shape(x)
+        input_shape = K.keras.backend.int_shape(x)
 
         reduction_axes = list(range(len(input_shape)))
         del reduction_axes[self.axis]
         broadcast_shape = [1] * len(input_shape)
         broadcast_shape[self.axis] = input_shape[self.axis]
 
-        if sorted(reduction_axes) == range(K.ndim(x))[:-1]:
+        if sorted(reduction_axes) == range(K.keras.backend.ndim(x))[:-1]:
             x_normed = K.batch_normalization(
                 x, self.running_mean, self.running_std,
                 self.beta, self.gamma,
